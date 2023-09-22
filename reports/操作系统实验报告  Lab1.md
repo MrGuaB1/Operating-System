@@ -196,7 +196,7 @@ csrw sscratch, sp
 csrrw s0, sscratch, x0
 ```
 
-这条指令的作用是：先将临时控制状态寄存器 `sscratch` 的值赋给 `s0`，再把 `x0` 的值赋给 `sscratch` ，`x0` 是零寄存器，也就是把 `sscratch` 的值还原。 这两条命令的目的是开辟一块空间，存储 `trapframe`，保存中断或异常时的状态，并在操作系统处理完毕之后进行还原。
+这条指令的作用是：先将临时控制状态寄存器 `sscratch` 的值赋给 `s0`，再把 `x0` 的值赋给 `sscratch` ，`x0` 是零寄存器，也就是把 `sscratch` 的值还原。 这两条命令的目的是保存最开始的`sp`寄存器的值并将`sscratch` 的值恢复。在保存寄存器的值之前将将`sp`的值赋值给了 `sscratch`(因为之后要用sp去开辟栈空间，值会改变)，现在要将其保存，但是SCR不能直接写入内存，所以要借助通用寄存器，然后将 `sscratch`的值恢复为0。
 
 > save all里面保存了stval scause这些csr，而在restore all里面却不还原它们？那这样store的意义何在呢？
 
