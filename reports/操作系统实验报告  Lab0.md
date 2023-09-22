@@ -1,7 +1,7 @@
 <h2 style="text-align:center">操作系统实验报告  Lab0
-
 <h4 style="float:right">  姓名：曹珉浩&emsp;&emsp;李威远&emsp;&emsp;乔诣昊   
-  学号：2113619 2112338 2111256
+  学号：2113619  2112338  2111256
+
 
 
 
