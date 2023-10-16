@@ -151,3 +151,42 @@ if(p+p->property == base){ //判断内存是否连续
 
 ![](./img/lab2-1.jpg)
 
+#### Challenge1：实现 Buddy-System 分配算法
+
+Buddy System 算法把系统中的可用存储空间划分为存储块(Block)来进行管理, 每个存储块的大小必须是2的n次幂。在本次实验中，我们从二叉树视角和双向链表视角实现了两种不同思路的 `Buddy System`，并成功的通过了我们编写的测试。两种方法的详细实现请参考[Buddy-System 设计文档](./Buddy-System 设计文档.md)。
+
+#### Challenge2：实现任意大小的内存单元slub分配算法
+
+slub算法实现两层架构的高效内存单元分配，第一层是基于页大小的内存分配，第二层是在第一层基础上实现基于任意大小的内存分配。在此简化了实现，详细内容请参考[Slub设计文档](./Slub 设计文档.md)。
+
+#### Challenge3：硬件的可用物理内存范围的获取方法
+
+> - 如果 OS 无法提前知道当前硬件的可用物理内存范围，请问你有何办法让 OS 获取可用物理内存范围？
+
+在基于BIOS固件的操作系统中，可以使用BIOS提供的中断功能。BIOS中断提供一个检索内存的功能，会返回一个结构体到指定的位置，下面是一段BIOS获取内存实现的源码：
+
+```assembly
+mov di, 0x7c00 ;0x7c00 是标准的实模式引导扇区加载地址，即bootloader在内存中加载的起始地址
+mov bx, 0
+mov ax, 0
+mov es, ax
+; 获取内存信息
+check_memory:
+    mov ax, 0xe820 ; 0xe820用于请求 BIOS 获取内存布局信息的功能号
+    mov cx, 20
+    mov edx, 0x534d4150
+    int 0x15 ; 触发 0x15 号 BIOS 中断，请求获取系统的内存布局信息
+
+    mov ax, 20
+    add di, ax
+    cmp bx, 0
+    jnz check_memory ; 检查是否还有更多的内存信息需要获取
+```
+
+还有一种方法是通过往内存中写入并读取数据来检测，如果超过了内存的范围，那么无论写入什么都会返回0。
+
+而基于OpenSBI固件的操作系统中，也可以通过 `sbi_scratch_alloc_offset` 函数来分配一些临时的内存空间，使用类似于BIOS的方法，往内存中写入并读取数据，如果超出范围则无论写入什么读取都为0。
+
+还有，OpenSBI会完成对于包括物理内存在内的各外设的扫描，将扫描结果以 DTB(Device Tree Blob) 的格式保存在物理内存中的某个地方。随后 OpenSBI 会将其地址保存在 `a1` 寄存器中，给我们使用。
+
+此外，还有一些间接的方法，可以通过OpenSBI提供的 `sbi_domain_memregion_count` 和 `sbi_domain_memregion_get` 函数来获取内存区域的数量和信息，这些信息可以用于确定可用的物理内存范围。

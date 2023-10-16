@@ -1,0 +1,10 @@
+{
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.associations": {
+        "buddy_pmm.h": "c",
+        "kmonitor.h": "c",
+        "pmm.h": "c",
+        "string.h": "c",
+        "sync.h": "c"
+    }
+}
