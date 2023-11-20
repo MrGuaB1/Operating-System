@@ -12,7 +12,7 @@ alloc_proc函数（位于kern/process/proc.c中）负责分配并返回一个新
 
 ##### 1.1数据结构介绍
 
-###### 1.1.1proc_struct结构体介绍
+###### 1.1.1 proc_struct结构体介绍
 
 在kern/process/proc.h中定义了proc_struct结构，在下方的注释里已经说明了各成员变量的作用
 
@@ -35,7 +35,7 @@ struct proc_struct {
 };
 ```
 
-###### 1.1.2proc_struct结构体介绍
+###### 1.1.2 proc_state结构体介绍
 
 同样是在kern/process/proc.h中定义了proc_state，可以看见有四个状态，下面注释进行了说明
 
@@ -131,13 +131,13 @@ if(idleproc->cr3 == boot_cr3 && idleproc->tf == NULL && !context_init_flag
 }
 ```
 
-##### 1.3说明proc_struct中`struct context context`和`struct trapframe *tf`成员变量含义和在本实验中的作用
+##### 1.3 说明proc_struct中`struct context context`和`struct trapframe *tf`成员变量含义和在本实验中的作用
 
 ###### 1.3.1 struct context context的含义与作用
 
 在kern/process/proc.h中定义了context结构体，可以看见其成员变量就是一些用于内核上下文保存的特殊寄存器，这里可以看出两点，首先是**都是risc-v的寄存器**，**其次只有部分寄存器**，有ra寄存器，用于返回地址，有sp寄存器，用于栈指针，还有s0到s11寄存器。
 
-RISC-V将寄存器分为保留和非保留两类，保留寄存器是指在函数调用前后必须保持相同值的寄存器，因为调用者期望在调用后能够继续使用这些寄存器的值。**保留寄存器包括s0到s11（因此称为saved），sp和ra。**非保留寄存器，也称为临时寄存器，是指在函数调用中可以自由修改的寄存器，不需要保存和恢复。非保留寄存器包括t0到t6（因此称为temporary）和a0到a7，即参数寄存器。
+RISC-V将寄存器分为保留和非保留两类，**保留寄存器是指在函数调用前后必须保持相同值的寄存器**，因为调用者期望在调用后能够继续使用这些寄存器的值。**保留寄存器包括s0到s11（因此称为saved），sp和ra。**非保留寄存器，也称为临时寄存器，是指在函数调用中可以自由修改的寄存器，不需要保存和恢复。非保留寄存器包括t0到t6（因此称为temporary）和a0到a7，即参数寄存器。
 
 context的作用就是实现上下文切换，具体流程体现在switch.S文件里。
 
@@ -254,7 +254,7 @@ forkrets:
     j __trapret
 ```
 
-forkrets（kern/trap/trapentry.S）这里把传进来的参数，也就是进程的中断帧放在了`sp`，这样在`__trapret`中就可以直接从中断帧里面恢复所有的寄存器了。在\_\_trapret中，会执行RESTORE_ALL，依次将前面设置好的临时trap_frame中断栈帧中的各个数据依次还原，执行sret，完成中断返回，S模式下使用sret指令返回原先指令的下一条指令。
+forkrets（kern/trap/trapentry.S）这里把传进来的参数，也就是进程的中断帧放在了`sp`，这样在`__trapret`中就可以直接从中断帧里面恢复所有的寄存器了。在\_\_trapret中，会执行RESTORE_ALL，依次将前面设置好的临时trap_frame中断栈帧中的各个数据依次还原，执行sret，完成中断返回，**S模式下使用sret指令返回原先指令的下一条指令**。
 
 ```c++
     .globl __trapret
@@ -368,7 +368,7 @@ static int get_pid(void) {
 
 <h6> 2.1.2 全局变量
 
--  `static struct proc* current`：当前占用CPU且处于运行状态的PCB指针，通常这个变量是只读的，只有在进程切换的时候才进行修改，并且整个切换和修改过程需要保证操作的原子性，目前至少需要屏蔽中断。
+-  `static struct proc* current`：**当前占用CPU且处于运行状态的PCB指针**，通常这个变量是只读的，只有在进程切换的时候才进行修改，并且整个切换和修改过程需要保证操作的原子性，目前至少需要屏蔽中断。
 
 > 屏蔽中断与恢复中断：利用 kmalloc.c 中封装的两个宏：
 >
@@ -464,7 +464,7 @@ bad_fork_cleanup_proc:
 
 **编写proc_run函数的过程实际上是认识进程切换的过程。**
 
-在我们的Ucore内核进程完成全部的初始化工作后，需要进行调度算法的实现，让我们先前实现的`idleproc`线程交出CPu的控制权，转移到其他内核线程去进行执行，调度算法通过`schedule`函数实现。
+在我们的Ucore内核进程完成全部的初始化工作后，需要进行调度算法的实现，让我们先前实现的`idleproc`线程交出CPU的控制权，转移到其他内核线程去进行执行，调度算法通过`schedule`函数实现。
 
 调度算法的实现在我们的lab6中会进一步说明，这里我们不过多描述。在完成调度后，需要调用`proc_run`函数将指定的进程切换到CPU上运行，即完成进程间的切换。
 
