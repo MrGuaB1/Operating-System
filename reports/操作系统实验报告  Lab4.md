@@ -319,7 +319,7 @@ copy_thread(struct proc_struct *proc, uintptr_t esp, struct trapframe *tf) {
 }
 ```
 
-- `get_pid`：该函数为进程分配一个唯一的 pid，并且相比暴力的维护一个布尔数组的$O(n)$算法来说，进行了一定的优化：在函数中，维护了两个静态变量，`last_pid` 和 `next_safe`，其中 `last_pid` 存储上一个分配的进程标识号，如果 `last_pid++` $\in$ (`last_pid`,`next_safe`)，那么直接返回 `last_pid++` 这个标识号，并且不会产生冲突。如果不在这个范围，那么就要进入循环，遍历标识号，找到一个可用的 `pid`，并设置下一个 `next_safe`，加速后面的 `get_pid` 过程。可见经过这种优化，算法最好的情况为落入区间，则时间复杂度为 $O(1)$，最坏的情况是扫描了几乎全部 `pid` 才找到一个不冲突的标识号，则时间复杂度为 $O(n)$
+- `get_pid`：该函数为进程分配一个唯一的 pid，并且相比暴力的维护一个布尔数组的$O(n)$算法来说，进行了一定的优化：在函数中，维护了两个静态变量，`last_pid` 和 `next_safe`，其中 `last_pid` 存储上一个分配的进程标识号，如果 `last_pid++` $\in$ (`last_pid`,`next_safe`)，那么直接返回 `last_pid++` 这个标识号，并且不会产生冲突。如果不在这个范围，那么就要进入循环，遍历标识号，找到一个可用的 `pid`，并设置下一个 `next_safe`，加速后面的 `get_pid` 过程。可见经过这种优化，算法最好的情况为落入区间，则时间复杂度为 $O(1)$，最坏的情况是在循环中扫描了几乎全部 `pid` 才找到一个不冲突的标识号，则时间复杂度为 $O(n^2)$
 
 ```c
 static int get_pid(void) {
@@ -329,7 +329,7 @@ static int get_pid(void) {
     // 两个静态(全局)变量
     // last_pid 变量保存上一次分配的 PID，(last_pid,next_safe) 表示一段可以使用的 PID 取值范围
     // 如果 last_pid < next_safe，即落入空间，那么直接返回，O(1)
-    // 如果没有找到这样的区间，进入循环直到找到这样一个区间，O(n)
+    // 如果没有找到这样的区间，进入循环直到找到这样一个区间，O(n^2)
     static int next_safe = MAX_PID, last_pid = MAX_PID;
     // 超出范围，重头开始寻找空间
     if (++ last_pid >= MAX_PID) {
